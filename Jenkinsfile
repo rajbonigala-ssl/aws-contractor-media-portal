@@ -97,7 +97,26 @@ pipeline{
                 sh "dotnet --version"
                 
                 println "Build "
-                sh "dotnet build aws-contractor-media-portal/aws-contractor-media-portal.csproj"
+                
+                sh '''
+                #!/bin/bash
+                
+
+                SESSION_NAME="jenkins"
+                OUTPUT_TRANSFORM="--query Credentials.[AccessKeyId,SecretAccessKey,SessionToken] --output text"
+                ASSUME_CMD="aws sts assume-role --output text --role-arn $ROLE_ARN --role-session-name $SESSION_NAME $OUTPUT_TRANSFORM"
+                RESULTS=`$ASSUME_CMD`
+                AWS_ACCESS_KEY_ID_ENV=`echo $RESULTS | cut -d' ' -f1`
+                AWS_SECRET_ACCESS_KEY_ENV=`echo $RESULTS | cut -d' ' -f2`
+                AWS_SESSION_TOKEN_ENV=`echo $RESULTS | cut -d' ' -f3`
+                echo -n $AWS_ACCESS_KEY_ID_ENV > AWS_ACCESS_KEY_ID_FILE
+                echo -n $AWS_SECRET_ACCESS_KEY_ENV > AWS_SECRET_ACCESS_KEY_FILE
+                echo -n $AWS_SESSION_TOKEN_ENV > AWS_SESSION_TOKEN_FILE
+
+                '''
+
+                sh "cd ~/aws-contractor-media-portal/aws_contractor_media_portal"
+                sh "python3 cdk synth"
 
             }
         }

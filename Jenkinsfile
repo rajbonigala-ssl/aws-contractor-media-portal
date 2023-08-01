@@ -96,7 +96,7 @@ pipeline{
 
                 sh "dotnet --version"
                 
-                println "Build "
+                println "Build 123 "
                 
                 sh '''
                 #!/bin/bash
